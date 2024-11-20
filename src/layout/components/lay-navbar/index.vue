@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useNav } from "@/layout/hooks/useNav";
+import { User } from "@element-plus/icons-vue";
 import LaySearch from "../lay-search/index.vue";
 import LayNotice from "../lay-notice/index.vue";
 import LayNavMix from "../lay-sidebar/NavMix.vue";
@@ -90,6 +91,9 @@ const { t, locale, translationCh, translationEn } = useTranslationLang();
       <el-dropdown trigger="click">
         <span class="el-dropdown-link navbar-bg-hover select-none">
           <img :src="userAvatar" :style="avatarsStyle" />
+          <!--          <el-icon>-->
+          <!--            <User />-->
+          <!--          </el-icon>-->
           <p v-if="username" class="dark:text-white">{{ username }}</p>
         </span>
         <template #dropdown>

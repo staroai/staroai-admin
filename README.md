@@ -49,3 +49,6 @@
 ## 许可证
 
 [MIT © 2020-present, pure-admin](./LICENSE)
+
+## git令牌 
+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

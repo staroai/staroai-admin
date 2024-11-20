@@ -25,6 +25,8 @@ import User from "@iconify-icons/ri/user-3-fill";
 
 import { setToken } from "@/utils/auth";
 import { usePermissionStoreHook } from "@/store/modules/permission";
+import { getLogin, isAdminAPI, sendOTP } from "@/api/user";
+import areaData from "@/plugins/area";
 
 defineOptions({
   name: "Login"
@@ -43,35 +45,74 @@ const { title, getDropdownItemStyle, getDropdownItemClass } = useNav();
 const { locale, translationCh, translationEn } = useTranslationLang();
 
 const ruleForm = reactive({
-  username: "admin",
-  password: "admin123"
+  areaCode: "+86",
+  username: "13103598107",
+  password: ""
 });
 
-const onLogin = async (formEl: FormInstance | undefined) => {
-  if (!formEl) return;
-  await formEl.validate(valid => {
-    if (valid) {
-      loading.value = true;
-      setToken({
-        username: "admin",
-        roles: ["admin"],
-        accessToken:
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI3ZDkwOWVhYi1jNzc2LTQ0YjUtOGM3ZS0xOWU2MmY2NWNjZTYiLCJpc0FkbWluIjp0cnVlLCJpYXQiOjE3MzIwMDAwMjksImV4cCI6MTczMjYwNDgyOX0.4YD9N0gTlkTdp-_-j2gR__sYEB78ex06E38SBadhvh8"
-      } as any);
-      // 全部采取静态路由模式
-      usePermissionStoreHook().handleWholeMenus([]);
-      addPathMatch();
-      router.push(getTopMenu(true).path);
-      message("登录成功", { type: "success" });
-      loading.value = false;
-    }
+const getIsAdmin = async () => {
+  return new Promise(resolve => {
+    isAdminAPI({
+      phoneNumber: ruleForm.areaCode + ruleForm.username
+    })
+      .then((res: any) => {
+        resolve(res.isAdmin);
+      })
+      .catch(err => {
+        message(err?.response?.data?.message, { type: "error" });
+      });
+  });
+};
+
+const getOTP = async () => {
+  if (!ruleForm.username) {
+    return message("请输入手机号", { type: "error" });
+  }
+  const isAdmin = await getIsAdmin();
+  if (!isAdmin) {
+    return message("该用户不是管理员", { type: "error" });
+  }
+  return new Promise(resolve => {
+    sendOTP({
+      phoneNumber: ruleForm.areaCode + ruleForm.username
+    }).then((res: any) => {
+      message("验证码发送成功", { type: "success" });
+      resolve(res);
+    });
+  });
+};
+
+const onLogin = async () => {
+  if (!ruleForm.username) {
+    return message("请输入手机号", { type: "error" });
+  }
+  if (!ruleForm.password) {
+    return message("请输入验证码", { type: "error" });
+  }
+
+  getLogin({
+    phoneNumber: ruleForm.areaCode + ruleForm.username,
+    otp: ruleForm.password
+  }).then((res: any) => {
+    loading.value = true;
+    setToken({
+      username: ruleForm.username,
+      roles: ["admin"],
+      accessToken: res.token
+    } as any);
+    // 全部采取静态路由模式
+    usePermissionStoreHook().handleWholeMenus([]);
+    addPathMatch();
+    router.push(getTopMenu(true).path);
+    message("登录成功", { type: "success" });
+    loading.value = false;
   });
 };
 
 /** 使用公共函数，避免`removeEventListener`失效 */
 function onkeypress({ code }: KeyboardEvent) {
   if (["Enter", "NumpadEnter"].includes(code)) {
-    onLogin(ruleFormRef.value);
+    onLogin();
   }
 }
 
@@ -147,34 +188,48 @@ onBeforeUnmount(() => {
             size="large"
           >
             <Motion :delay="100">
-              <el-form-item
-                :rules="[
-                  {
-                    required: true,
-                    message: transformI18n($t('login.pureUsernameReg')),
-                    trigger: 'blur'
-                  }
-                ]"
-                prop="username"
-              >
+              <el-form-item>
                 <el-input
                   v-model="ruleForm.username"
                   clearable
-                  :placeholder="t('login.pureUsername')"
-                  :prefix-icon="useRenderIcon(User)"
-                />
+                  placeholder="请输入手机号"
+                >
+                  <template #prepend>
+                    <el-select
+                      v-model="ruleForm.areaCode"
+                      placeholder="地区"
+                      style="width: 115px"
+                      filterable
+                    >
+                      <!--                      <el-option label="中国" value="+86" />-->
+                      <el-option
+                        v-for="item in areaData"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                      />
+                    </el-select>
+                  </template>
+                </el-input>
               </el-form-item>
             </Motion>
 
             <Motion :delay="150">
-              <el-form-item prop="password">
+              <el-form-item>
                 <el-input
                   v-model="ruleForm.password"
-                  clearable
-                  show-password
-                  :placeholder="t('login.purePassword')"
-                  :prefix-icon="useRenderIcon(Lock)"
-                />
+                  placeholder="请输入验证码"
+                >
+                  <template #suffix>
+                    <el-button
+                      link
+                      type="primary"
+                      size="small"
+                      @click="getOTP()"
+                      >发送验证码</el-button
+                    >
+                  </template>
+                </el-input>
               </el-form-item>
             </Motion>
 
@@ -184,7 +239,7 @@ onBeforeUnmount(() => {
                 size="default"
                 type="primary"
                 :loading="loading"
-                @click="onLogin(ruleFormRef)"
+                @click="onLogin()"
               >
                 {{ t("login.pureLogin") }}
               </el-button>

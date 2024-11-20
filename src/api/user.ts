@@ -19,6 +19,7 @@ export type UserResult = {
     refreshToken: string;
     /** `accessToken`的过期时间（格式'xxxx/xx/xx xx:xx:xx'） */
     expires: Date;
+    isAdmin: boolean;
   };
 };
 
@@ -34,9 +35,18 @@ export type RefreshTokenResult = {
   };
 };
 
+/** 获取op */
+export const sendOTP = (data?: object) => {
+  return http.request<UserResult>("post", "/api/auth/sendOTP", { data });
+};
+/** 是否admin */
+export const isAdminAPI = (data?: object) => {
+  return http.request<UserResult>("post", "/api/auth/isAdmin", { data });
+};
+
 /** 登录 */
 export const getLogin = (data?: object) => {
-  return http.request<UserResult>("post", "/login", { data });
+  return http.request<UserResult>("post", "/api/auth/verifyOTP", { data });
 };
 
 /** 刷新`token` */
