@@ -73,7 +73,7 @@ export const getAgentChatMessageRecords = (data?: SensitiveWordsData) => {
 export const getnoncompliances = (data?: SensitiveWordsData) => {
   return http.request<UserResult>(
     "get",
-    `/api/admin/noncompliances/${data.keyWord}?page=${data.page}&limit=${3}`,
+    `/api/admin/noncompliances/${data.keyWord}?page=${data.page}&limit=${data.limit}`,
     {
       data
     }

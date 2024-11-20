@@ -185,24 +185,14 @@ onMounted(() => {
       @selection-change="handleSelectionChange"
     >
       <!--      <el-table-column type="selection" width="55" />-->
-      <el-table-column prop="userId" label="用户ID" width="100" />
-      <el-table-column prop="userMessage" label="违规消息" width="150" />
-      <el-table-column prop="label" label="风险等级" width="100">
+      <el-table-column prop="userId" label="用户ID" width="120" />
+      <el-table-column prop="userMessage" label="违规消息" width="" />
+      <el-table-column prop="reason" label="原因" width="">
         <template v-slot="scope">{{
-          scope.row.reason?.reason?.riskLevel
+          JSON.stringify(scope.row.reason)
         }}</template>
       </el-table-column>
-      <el-table-column prop="label" label="风险提示" width="">
-        <template v-slot="scope">{{
-          scope.row.reason?.reason?.riskTips
-        }}</template>
-      </el-table-column>
-      <el-table-column prop="label" label="相关敏感词" width="">
-        <template v-slot="scope">{{
-          scope.row.reason?.reason?.riskWords
-        }}</template>
-      </el-table-column>
-      <el-table-column prop="timestamp" label="创建时间" width="" />
+      <el-table-column prop="timestamp" label="创建时间" width="200" />
     </el-table>
 
     <el-pagination

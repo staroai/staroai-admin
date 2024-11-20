@@ -41,6 +41,8 @@
 .avatar {
   width: 350px;
   height: 80px;
+  position: relative;
+  left: 35%;
 }
 
 .login-form h2 {
